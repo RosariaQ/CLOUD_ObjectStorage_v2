@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ title }} - 나의 오브젝트 스토리지{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1>간단 오브젝트 스토리지에 오신 것을 환영합니다!</h1>
+    <p>이곳에서 파일을 안전하게 저장하고 관리하세요.</p>
+    <p>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('main.register_page') }}" role="button">시작하기 (회원가입)</a>
+        <a class="btn btn-secondary btn-lg" href="{{ url_for('main.login_page') }}" role="button">로그인</a>
+    </p>
+</div>
+{% endblock %}
