@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ title }} - 나의 오브젝트 스토리지{% endblock %}
+
+{% block content %}
+<h2>로그인</h2>
+<form id="loginForm">
+    <div>
+        <label for="username">사용자 이름:</label>
+        <input type="text" id="username" name="username" required>
+    </div>
+    <div>
+        <label for="password">비밀번호:</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+    <button type="submit">로그인</button>
+</form>
+<div id="loginMessage" style="margin-top: 10px;"></div>
+<p>계정이 없으신가요? <a href="{{ url_for('main.register_page') }}">회원가입</a></p>
+{% endblock %}
+
+{% block scripts %}
+    {# auth.js 스크립트 파일 연결 #}
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}
