@@ -3,7 +3,6 @@
 {% block title %}{{ title }} - 나의 오브젝트 스토리지{% endblock %}
 
 {% block head_content %}
-    {# 필요하다면 이 페이지 전용 CSS를 추가할 수 있습니다. #}
     <style>
         .file-table {
             width: 100%;
@@ -37,7 +36,7 @@
             border-color: #ffc107;
         }
         #passwordModal {
-            display: none; /* 기본적으로 숨김 */
+            display: none;
             position: fixed;
             z-index: 1000;
             left: 0;
@@ -69,6 +68,37 @@
             text-decoration: none;
             cursor: pointer;
         }
+        /* 업로드 폼 스타일 */
+        #uploadForm input[type="file"] {
+            margin-bottom: 10px;
+        }
+        #uploadForm button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #uploadForm button:hover {
+            background-color: #45a049;
+        }
+        #uploadProgress {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 4px;
+            margin-top:10px;
+            display: none; /* 초기에는 숨김 */
+        }
+        #uploadProgressBar {
+            width: 0%;
+            height: 20px;
+            background-color: #4CAF50;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            border-radius: 4px;
+        }
     </style>
 {% endblock %}
 
@@ -76,10 +106,21 @@
 <h2>내 파일 대시보드</h2>
 <p>이곳에서 파일을 관리하고 업로드할 수 있습니다.</p>
 
-<div id="fileUploadSection" style="margin-bottom: 30px;">
+<div id="fileUploadSection" style="margin-bottom: 30px; padding: 15px; border: 1px solid #eee; border-radius: 5px;">
     <h3>파일 업로드</h3>
-    {# 파일 업로드 폼은 4단계에서 구현 #}
-    <p><em>파일 업로드 기능은 다음 단계에서 구현됩니다.</em></p>
+    {# 👇 파일 업로드 폼 시작 #}
+    <form id="uploadForm" enctype="multipart/form-data">
+        <div>
+            <label for="fileInput">파일 선택:</label>
+            <input type="file" id="fileInput" name="file" required>
+        </div>
+        <button type="submit">업로드</button>
+    </form>
+    <div id="uploadProgress">
+        <div id="uploadProgressBar">0%</div>
+    </div>
+    <p id="uploadMessage" style="margin-top: 10px;"></p>
+    {# 👆 파일 업로드 폼 끝 #}
 </div>
 
 <div id="fileListSection">
@@ -95,7 +136,6 @@
             </tr>
         </thead>
         <tbody id="fileListBody">
-            {# JavaScript로 파일 목록이 여기에 채워집니다. #}
             <tr>
                 <td colspan="5" style="text-align:center;">파일을 불러오는 중...</td>
             </tr>
@@ -104,7 +144,6 @@
     <p id="fileListMessage" style="margin-top: 10px;"></p>
 </div>
 
-{# 비밀번호 입력 모달 #}
 <div id="passwordModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" id="closePasswordModal">&times;</span>
@@ -119,6 +158,5 @@
 {% endblock %}
 
 {% block scripts %}
-    {# 대시보드 관련 JavaScript 파일을 연결합니다. #}
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

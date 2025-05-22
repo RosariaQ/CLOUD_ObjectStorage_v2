@@ -1,21 +1,27 @@
 // v2/app/static/js/dashboard.js
 
 document.addEventListener('DOMContentLoaded', function () {
+    // ... (이전 코드: fileListBody, fileListMessage, token, 모달 관련 변수 선언 등) ...
     const fileListBody = document.getElementById('fileListBody');
     const fileListMessage = document.getElementById('fileListMessage');
     const token = localStorage.getItem('jwtToken');
 
-    // 비밀번호 모달 관련 요소
     const passwordModal = document.getElementById('passwordModal');
     const closePasswordModalBtn = document.getElementById('closePasswordModal');
     const filePasswordInput = document.getElementById('filePasswordInput');
     const submitPasswordBtn = document.getElementById('submitPasswordBtn');
     const passwordModalMessage = document.getElementById('passwordModalMessage');
     const passwordPromptFile = document.getElementById('passwordPromptFile');
-    let currentDownloadLink = null; // 현재 비밀번호를 입력받는 다운로드 링크 정보 저장
+    let currentDownloadLink = null;
+
+    const uploadForm = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('fileInput');
+    const uploadMessage = document.getElementById('uploadMessage');
+    const uploadProgressDiv = document.getElementById('uploadProgress');
+    const uploadProgressBar = document.getElementById('uploadProgressBar');
+
 
     if (!token) {
-        // 토큰이 없으면 로그인 페이지로 리디렉션
         if (fileListMessage) fileListMessage.textContent = '로그인이 필요합니다. 로그인 페이지로 이동합니다.';
         if (fileListMessage) fileListMessage.style.color = 'red';
         setTimeout(() => {
@@ -25,11 +31,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function fetchAndDisplayFiles() {
+        // ... (fetchAndDisplayFiles 함수 내용은 이전과 동일) ...
         if (!fileListBody) return;
-        fileListBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">파일을 불러오는 중...</td></tr>'; // 로딩 메시지
+        fileListBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">파일을 불러오는 중...</td></tr>';
 
         try {
-            const response = await fetch('/api/files', { // 0단계에서 prefix 적용됨
+            const response = await fetch('/api/files', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -37,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            if (response.status === 401) { // 토큰 만료 또는 유효하지 않은 경우
+            if (response.status === 401) {
                 localStorage.removeItem('jwtToken');
                 localStorage.removeItem('username');
                 if (fileListMessage) fileListMessage.textContent = '세션이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.';
@@ -56,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (data.files && data.files.length > 0) {
-                fileListBody.innerHTML = ''; // 기존 내용 지우기
+                fileListBody.innerHTML = '';
                 data.files.forEach(file => {
                     const row = fileListBody.insertRow();
                     row.insertCell().textContent = file.filename;
@@ -67,9 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const actionsCell = row.insertCell();
                     actionsCell.className = 'actions';
 
-                    // 다운로드 링크
                     const downloadLink = document.createElement('a');
-                    // API의 다운로드 경로는 /api/download/<link_id>
                     downloadLink.href = `/api/download/${file.download_link_id}`;
                     downloadLink.textContent = '다운로드';
                     downloadLink.setAttribute('data-filename', file.filename);
@@ -78,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (file.permission === 'password') {
                         downloadLink.addEventListener('click', function(event) {
-                            event.preventDefault(); // 기본 링크 동작 방지
+                            event.preventDefault();
                             currentDownloadLink = {
                                 linkId: file.download_link_id,
                                 filename: file.filename
@@ -88,27 +93,19 @@ document.addEventListener('DOMContentLoaded', function () {
                             filePasswordInput.value = '';
                             passwordModal.style.display = 'block';
                         });
-                    } else if (file.permission === 'public') {
-                        // public 파일은 바로 다운로드 (브라우저가 처리)
-                        // downloadLink.setAttribute('download', file.filename); // 브라우저가 파일명으로 저장하도록 함
-                    } else { // private
-                        // private 파일은 현재 사용자가 소유자일 때만 다운로드 가능 (API에서 처리)
-                        // 여기서는 일단 링크만 제공하고, API에서 권한 확인
                     }
                     actionsCell.appendChild(downloadLink);
 
-                    // 권한 변경 버튼 (5단계에서 구현)
                     const permissionButton = document.createElement('button');
                     permissionButton.textContent = '권한 변경';
                     permissionButton.className = 'permission-btn';
-                    permissionButton.onclick = () => alert(`'${file.filename}' 파일 권한 변경 기능 (구현 예정)`); // 알림창 대신 실제 기능 구현 필요
+                    permissionButton.onclick = () => alert(`'${file.filename}' 파일 권한 변경 기능 (구현 예정)`);
                     actionsCell.appendChild(permissionButton);
 
-                    // 삭제 버튼 (5단계에서 구현)
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = '삭제';
                     deleteButton.className = 'delete-btn';
-                    deleteButton.onclick = () => alert(`'${file.filename}' 파일 삭제 기능 (구현 예정)`); // 알림창 대신 실제 기능 구현 필요
+                    deleteButton.onclick = () => alert(`'${file.filename}' 파일 삭제 기능 (구현 예정)`);
                     actionsCell.appendChild(deleteButton);
                 });
                 if (fileListMessage) fileListMessage.textContent = '';
@@ -125,8 +122,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 파일 크기 포맷 함수
     function formatFileSize(bytes) {
+        // ... (formatFileSize 함수 내용은 이전과 동일) ...
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -134,8 +131,8 @@ document.addEventListener('DOMContentLoaded', function () {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    // 접근 권한 텍스트 변환 함수
     function getPermissionText(permission) {
+        // ... (getPermissionText 함수 내용은 이전과 동일) ...
         switch (permission) {
             case 'public': return '공개';
             case 'private': return '비공개';
@@ -144,51 +141,145 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 비밀번호 모달 닫기 버튼
     if (closePasswordModalBtn) {
+        // ... (모달 닫기 로직 이전과 동일) ...
         closePasswordModalBtn.onclick = function() {
             passwordModal.style.display = 'none';
             currentDownloadLink = null;
         }
     }
 
-    // 모달 외부 클릭 시 닫기
     window.onclick = function(event) {
+        // ... (모달 외부 클릭 닫기 로직 이전과 동일) ...
         if (event.target == passwordModal) {
             passwordModal.style.display = 'none';
             currentDownloadLink = null;
         }
     }
 
-    // 비밀번호 제출 버튼
     if (submitPasswordBtn) {
+        // ... (비밀번호 제출 로직 이전과 동일) ...
         submitPasswordBtn.onclick = function() {
             if (!currentDownloadLink) return;
-
             const password = filePasswordInput.value;
             if (!password) {
                 passwordModalMessage.textContent = '비밀번호를 입력해주세요.';
                 return;
             }
             passwordModalMessage.textContent = '';
-
-            // 비밀번호와 함께 다운로드 URL 생성 및 이동
             const downloadUrl = `/api/download/${currentDownloadLink.linkId}?password=${encodeURIComponent(password)}`;
-            
-            window.location.href = downloadUrl; 
-
-            // 다운로드 시도 후 모달 닫기 (성공 여부와 관계없이)
-            // 실제로는 서버 응답을 확인하고 처리하는 것이 더 좋음
+            window.location.href = downloadUrl;
             setTimeout(() => {
                  passwordModal.style.display = 'none';
                  currentDownloadLink = null;
-            }, 1000); // 약간의 딜레이 후 모달 닫기
+            }, 1000);
         }
     }
+    
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', async function(event) {
+            event.preventDefault(); 
 
-    // 페이지 로드 시 파일 목록 가져오기
+            if (!fileInput.files || fileInput.files.length === 0) {
+                if (uploadMessage) {
+                    uploadMessage.textContent = '업로드할 파일을 선택해주세요.';
+                    uploadMessage.style.color = 'red';
+                }
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file); 
+
+            if (uploadMessage) uploadMessage.textContent = '파일 업로드 중...';
+            if (uploadMessage) uploadMessage.style.color = 'blue';
+            if (uploadProgressDiv) uploadProgressDiv.style.display = 'block';
+            if (uploadProgressBar) {
+                uploadProgressBar.style.width = '0%';
+                uploadProgressBar.textContent = '0%';
+            }
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/upload', true); 
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+            
+            xhr.upload.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    const percentComplete = Math.round((event.loaded / event.total) * 100);
+                    if (uploadProgressBar) {
+                        uploadProgressBar.style.width = percentComplete + '%';
+                        uploadProgressBar.textContent = percentComplete + '%';
+                    }
+                }
+            };
+
+            // 👇 여기가 수정된 xhr.onload 함수입니다.
+            xhr.onload = function() {
+                if (uploadProgressDiv) uploadProgressDiv.style.display = 'none';
+                if (fileInput) fileInput.value = ''; // 파일 입력 필드 초기화
+
+                if (xhr.status >= 200 && xhr.status < 300) { // 성공 케이스
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (uploadMessage) {
+                            uploadMessage.textContent = data.message || '파일이 성공적으로 업로드되었습니다.';
+                            uploadMessage.style.color = 'green';
+                        }
+                        if (window.refreshFileList) {
+                            window.refreshFileList();
+                        }
+                    } catch (e) {
+                        console.error("Error parsing success response:", e);
+                        if (uploadMessage) {
+                            uploadMessage.textContent = '업로드 응답 처리 중 오류가 발생했습니다. (서버 응답이 JSON이 아님)';
+                            uploadMessage.style.color = 'red';
+                        }
+                    }
+                } else { // 오류 케이스 (4xx, 5xx 등)
+                    let errorMessage = `서버 오류 (${xhr.status})`; // 기본 오류 메시지
+                    
+                    if (xhr.status === 413) {
+                        // config.py에 설정된 MAX_CONTENT_LENGTH 값 (예: 256MB)
+                        errorMessage = '업로드 실패: 파일이 너무 큽니다. 최대 허용 크기는 256MB 입니다.';
+                    } else {
+                        // API가 JSON 형태의 오류 메시지를 반환하는 경우를 먼저 시도
+                        try {
+                            if (xhr.responseText && xhr.getResponseHeader('Content-Type')?.includes('application/json')) {
+                                const errorData = JSON.parse(xhr.responseText);
+                                errorMessage = '업로드 실패: ' + (errorData.message || `서버 오류 (${xhr.status})`);
+                            } else if (xhr.responseText) {
+                                // JSON이 아니지만 응답 텍스트가 있는 경우 (예: HTML 오류 페이지)
+                                // 전체 HTML을 보여주기보다는 상태 텍스트나 일반 메시지 사용
+                                errorMessage = `업로드 실패: ${xhr.statusText || '서버에서 오류가 발생했습니다.'} (코드: ${xhr.status})`;
+                                console.warn("Server returned non-JSON error response:", xhr.responseText);
+                            }
+                        } catch (e) {
+                            // JSON 파싱 실패 시, 더 일반적인 오류 메시지 사용
+                            console.error("Error parsing error response:", e);
+                            errorMessage = `업로드 실패: ${xhr.statusText || '알 수 없는 서버 오류가 발생했습니다.'} (코드: ${xhr.status})`;
+                        }
+                    }
+                    if (uploadMessage) {
+                        uploadMessage.textContent = errorMessage;
+                        uploadMessage.style.color = 'red';
+                    }
+                }
+            };
+            // 👆 수정된 xhr.onload 함수 끝
+
+            xhr.onerror = function() {
+                if (uploadProgressDiv) uploadProgressDiv.style.display = 'none';
+                if (uploadMessage) {
+                    uploadMessage.textContent = '업로드 중 네트워크 오류가 발생했습니다.';
+                    uploadMessage.style.color = 'red';
+                }
+            };
+
+            xhr.send(formData);
+        });
+    }
+
     fetchAndDisplayFiles();
-
-    // 전역적으로 접근 가능한 파일 목록 새로고침 함수 (업로드, 삭제, 권한 변경 후 호출용)
     window.refreshFileList = fetchAndDisplayFiles;
 });
