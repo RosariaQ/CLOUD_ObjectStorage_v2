@@ -4,6 +4,7 @@
 
 {% block head_content %}
     <style>
+        /* ... (기존 스타일은 동일하게 유지) ... */
         .file-table {
             width: 100%;
             border-collapse: collapse;
@@ -24,19 +25,27 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 0.9em; /* 버튼 크기 약간 줄임 */
         }
-        .actions .delete-btn {
-            background-color: #f44336;
+        .actions .download-btn { /* 다운로드 버튼 스타일 명시 (필요시) */
+            background-color: #007bff;
             color: white;
-            border-color: #f44336;
+            border-color: #007bff;
         }
         .actions .permission-btn {
             background-color: #ffc107;
             color: black;
             border-color: #ffc107;
         }
-        #passwordModal {
-            display: none;
+        .actions .delete-btn {
+            background-color: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+
+        /* 모달 공통 스타일 */
+        .modal {
+            display: none; 
             position: fixed;
             z-index: 1000;
             left: 0;
@@ -48,14 +57,47 @@
         }
         .modal-content {
             background-color: #fefefe;
-            margin: 15% auto;
+            margin: 10% auto; /* 상단 마진 줄임 */
             padding: 20px;
             border: 1px solid #888;
             width: 80%;
-            max-width: 400px;
+            max-width: 450px; /* 모달 너비 약간 늘림 */
             border-radius: 8px;
-            text-align: center;
+            text-align: left; /* 모달 내용 왼쪽 정렬 */
         }
+        .modal-content h4 {
+            text-align: center;
+            margin-top: 0;
+        }
+        .modal-content label {
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+        .modal-content input[type="password"], .modal-content select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .modal-content button {
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+        }
+        .modal-content .submit-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .modal-content .cancel-btn {
+            background-color: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+
+
         .close-btn {
             color: #aaa;
             float: right;
@@ -68,37 +110,12 @@
             text-decoration: none;
             cursor: pointer;
         }
-        /* 업로드 폼 스타일 */
-        #uploadForm input[type="file"] {
-            margin-bottom: 10px;
-        }
-        #uploadForm button {
-            padding: 8px 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        #uploadForm button:hover {
-            background-color: #45a049;
-        }
-        #uploadProgress {
-            width: 100%;
-            background-color: #ddd;
-            border-radius: 4px;
-            margin-top:10px;
-            display: none; /* 초기에는 숨김 */
-        }
-        #uploadProgressBar {
-            width: 0%;
-            height: 20px;
-            background-color: #4CAF50;
-            text-align: center;
-            line-height: 20px;
-            color: white;
-            border-radius: 4px;
-        }
+        /* 업로드 폼 스타일 (기존과 동일) */
+        #uploadForm input[type="file"] { margin-bottom: 10px; }
+        #uploadForm button { padding: 8px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        #uploadForm button:hover { background-color: #45a049; }
+        #uploadProgress { width: 100%; background-color: #ddd; border-radius: 4px; margin-top:10px; display: none; }
+        #uploadProgressBar { width: 0%; height: 20px; background-color: #4CAF50; text-align: center; line-height: 20px; color: white; border-radius: 4px; }
     </style>
 {% endblock %}
 
@@ -108,7 +125,6 @@
 
 <div id="fileUploadSection" style="margin-bottom: 30px; padding: 15px; border: 1px solid #eee; border-radius: 5px;">
     <h3>파일 업로드</h3>
-    {# 👇 파일 업로드 폼 시작 #}
     <form id="uploadForm" enctype="multipart/form-data">
         <div>
             <label for="fileInput">파일 선택:</label>
@@ -120,7 +136,6 @@
         <div id="uploadProgressBar">0%</div>
     </div>
     <p id="uploadMessage" style="margin-top: 10px;"></p>
-    {# 👆 파일 업로드 폼 끝 #}
 </div>
 
 <div id="fileListSection">
@@ -136,24 +151,53 @@
             </tr>
         </thead>
         <tbody id="fileListBody">
-            <tr>
-                <td colspan="5" style="text-align:center;">파일을 불러오는 중...</td>
-            </tr>
+            <tr><td colspan="5" style="text-align:center;">파일을 불러오는 중...</td></tr>
         </tbody>
     </table>
     <p id="fileListMessage" style="margin-top: 10px;"></p>
 </div>
 
+{# 비밀번호 입력 모달 (다운로드용 - 기존과 동일) #}
 <div id="passwordModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" id="closePasswordModal">&times;</span>
         <h4>비밀번호 입력</h4>
         <p id="passwordPromptFile"></p>
-        <input type="password" id="filePasswordInput" placeholder="파일 비밀번호" style="width: calc(100% - 22px); padding: 10px; margin-bottom: 10px;">
-        <button id="submitPasswordBtn" style="padding: 10px 20px;">확인</button>
+        <input type="password" id="filePasswordInput" placeholder="파일 비밀번호">
+        <button id="submitPasswordBtn" class="submit-btn">확인</button>
         <p id="passwordModalMessage" style="color: red; margin-top: 10px;"></p>
     </div>
 </div>
+
+{# 👇 파일 권한 변경 모달 추가 #}
+<div id="permissionModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="closePermissionModal">&times;</span>
+        <h4>파일 권한 변경</h4>
+        <p id="permissionFileName"></p>
+        <form id="permissionForm">
+            <input type="hidden" id="permissionFileId">
+            <div>
+                <label for="permissionSelect">새 접근 권한:</label>
+                <select id="permissionSelect" name="permission">
+                    <option value="private">비공개 (Private)</option>
+                    <option value="public">공개 (Public)</option>
+                    <option value="password">비밀번호 (Password)</option>
+                </select>
+            </div>
+            <div id="newPasswordSection" style="display: none;">
+                <label for="newFilePassword">새 비밀번호:</label>
+                <input type="password" id="newFilePassword" name="new_password" placeholder="권한이 '비밀번호'일 경우 입력">
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                 <button type="button" id="cancelPermissionChangeBtn" class="cancel-btn">취소</button>
+                 <button type="submit" class="submit-btn">변경 저장</button>
+            </div>
+        </form>
+        <p id="permissionModalMessage" style="color: red; margin-top: 10px;"></p>
+    </div>
+</div>
+{# 👆 파일 권한 변경 모달 끝 #}
 
 {% endblock %}
 
