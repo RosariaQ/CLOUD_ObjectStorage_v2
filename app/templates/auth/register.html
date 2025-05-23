@@ -19,7 +19,7 @@
 <p>이미 계정이 있으신가요? <a href="{{ url_for('main.login_page') }}">로그인</a></p>
 {% endblock %}
 
-{% block scripts %}
-    {# auth.js 스크립트 파일 연결 #}
+{# 👇 layout.html의 블록 이름과 일치시킴 #}
+{% block page_scripts %}
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 {% endblock %}
